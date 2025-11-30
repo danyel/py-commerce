@@ -1,59 +1,125 @@
+from __future__ import annotations
+from pydantic import BaseModel, Field
+from typing import List, Optional
 import uuid
-from typing import List
-
-from pydantic import BaseModel
+from datetime import datetime
 
 
-class Category(BaseModel):
-    id: uuid.UUID
-    name: str
-    children: List["Category"] = []
-
-
-class Product(BaseModel):
-    id: uuid.UUID
-    name: str
-    description: str
+class CmsCreate(BaseModel):
     code: str
-    price: float
+    value: str
+    language: str
+
+
+class CmsRead(CmsCreate):
+    id: uuid.UUID
+    created_at: datetime
+    updated_at: datetime
+
+
+class CategoryCreate(BaseModel):
+    name: str
+    children_ids: Optional[List[uuid.UUID]] = Field(default_factory=list)
+
+
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    children_ids: Optional[List[uuid.UUID]] = None
+
+
+class CategoryRead(BaseModel):
+    id: uuid.UUID
+    name: str
+    children: List['CategoryRead'] = []
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class CategoryReadSimple(BaseModel):
+    id: uuid.UUID
+    name: str
+
+    class Config:
+        orm_mode = True
+
+
+class ProductCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    brand: Optional[str] = None
+    code: Optional[str] = None
+    stock: Optional[int] = 0
+    image_url: Optional[str] = None
+    category_id: Optional[uuid.UUID] = None
+    price: Optional[int] = 0
+
+
+class ProductUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    brand: Optional[str]
+    code: Optional[str]
+    stock: Optional[int]
+    image_url: Optional[str]
+    category_id: Optional[uuid.UUID]
+    price: Optional[int]
+
+
+class ProductRead(BaseModel):
+    id: uuid.UUID
+    name: str
+    description: Optional[str]
+    brand: Optional[str]
+    code: Optional[str]
     stock: int
-    imageUrl: str
-    brand: str
-    category: Category
+    image_url: Optional[str]
+    category: Optional[CategoryReadSimple] = None
+    price: int
 
-class Health (BaseModel):
-    name: str
-    status: str
+    class Config:
+        orm_mode = True
 
-class ProductId(BaseModel):
+
+class ShoppingBasketItemBase(BaseModel):
+    price: Optional[int] = 0
+    amount: Optional[int] = 1
+    image_url: Optional[str] = None
+    name: Optional[str] = None
+
+
+class ShoppingBasketItemCreate(BaseModel):
+    product_id: Optional[uuid.UUID]
+
+
+class ShoppingBasketItemRead(ShoppingBasketItemBase):
     id: uuid.UUID
+    product_id: uuid.UUID
+    product: Optional[ProductRead] = None
 
-class CreateProduct(BaseModel):
-    name: str
-    description: str
-    code: str
-    price: float
-    imageUrl: str
-    brand: str
-    categoryId: uuid.UUID
+    class Config:
+        orm_mode = True
 
 
-class ShoppingBasket(BaseModel):
-    id: uuid.UUID
-    items: List["ShoppingBasketItem"] = []
-
-
-class AddShoppingBasketItem(BaseModel):
-    productId: uuid.UUID
+class ShoppingBasketCreate(BaseModel):
+    items: Optional[List[ShoppingBasketItemCreate]] = []
 
 
 class ShoppingBasketId(BaseModel):
     id: uuid.UUID
 
 
-class ShoppingBasketItem(BaseModel):
+class ShoppingBasketRead(BaseModel):
     id: uuid.UUID
-    shoppingBasket: ShoppingBasket
-    productId: uuid.UUID
-    amount: int
-    price: float
+    items: List[ShoppingBasketItemRead] = []
+    total_price_exclusive: Optional[float] = 0.0
+    total_price_inclusive: Optional[float] = 0.0
+    tax: Optional[float] = 0.0
+
+    class Config:
+        orm_mode = True
+
+
+CategoryRead.update_forward_refs()

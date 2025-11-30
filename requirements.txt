@@ -2,3 +2,8 @@ fastapi
 uvicorn
 pydantic
 httpx
+pyramid_tm
+SQLAlchemy
+transaction
+zope.sqlalchemy
+asyncpg
